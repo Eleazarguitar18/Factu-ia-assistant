@@ -21,9 +21,8 @@ export class UsuarioController {
   @Public()
   @Post('register')
   async create(@Body() createAuthDto: CreateAuthDto) {
-      return await this.usuarioService.create(createAuthDto);
+    return await this.usuarioService.create(createAuthDto);
   }
-  
 
   @Get()
   async findAll() {
@@ -37,13 +36,16 @@ export class UsuarioController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usuarioService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    return await this.usuarioService.findOne(+id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {
-    return this.usuarioService.update(+id, updateUsuarioDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateUsuarioDto: UpdateUsuarioDto,
+  ) {
+    return await this.usuarioService.update(+id, updateUsuarioDto);
   }
 
   @Delete(':id')

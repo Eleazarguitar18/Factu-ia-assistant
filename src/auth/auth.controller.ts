@@ -54,13 +54,18 @@ export class AuthController {
   @Public()
   @Post('reset-confirm')
   async confirmPasswordChange(
-    @Body() resetDto: { email: string; code: string; newPassword: string }
+    @Body() resetDto: { email: string; newPassword: string },
   ) {
     return this.authService.confirmPasswordChange(
       resetDto.email,
-      resetDto.code,
-      resetDto.newPassword
+      resetDto.newPassword,
     );
+  }
+
+  @Public()
+  @Post('confirm-code')
+  async confirmCode(@Body() resetDto: { email: string; code: string }) {
+    return await this.authService.confirmCode(resetDto.email, resetDto.code);
   }
 
   @Get()

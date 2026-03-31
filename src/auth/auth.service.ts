@@ -12,10 +12,8 @@ import { Usuario } from 'src/usuario/entities/usuario.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
-// import { hash } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
 import { SignInDto } from './dto/SingInDto';
-import { Persona } from 'src/persona/entities/persona.entity';
 import crypto from 'crypto';
 import { MailService } from 'src/mail/mail.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -26,8 +24,6 @@ export class AuthService {
   constructor(
     @InjectRepository(Usuario)
     private userRepository: Repository<Usuario>,
-    @InjectRepository(Persona)
-    private personaRepository: Repository<Persona>,
     private readonly personaService: PersonaService,
     private readonly mailService: MailService,
     private readonly configService: ConfigService,
@@ -180,18 +176,18 @@ export class AuthService {
     // Clave: "reset_password:user@mail.com" | Valor: "CODE" | TTL: 900000ms (15 min)
     const redisKey = `reset_password:${email}`;
     await this.cacheManager.set(redisKey, code, 900000);
-    console.log(`Código de verificación para ${email}: ${code}`); // Para desarrollo, en producción no mostraría esto
+    const savedCode = await this.cacheManager.get<string>(redisKey);
+    console.log(
+      `Código de verificación para ${email}: ${code},redis: ${savedCode}`,
+    ); // Para desarrollo, en producción no mostraría esto
     // 4. Enviar Email
     const { name } = user;
     await this.mailService.sendCode(email, name, code);
 
     return { message: 'Código de verificación enviado al correo' };
   }
-  async confirmPasswordChange(
-    email: string,
-    code: string,
-    newPassword: string,
-  ): Promise<{ message: string }> {
+
+  async confirmCode(email: string, code: string): Promise<{ message: string }> {
     const redisKey = `reset_password:${email}`;
 
     // 1. Intentar obtener el código de Redis
@@ -206,7 +202,17 @@ export class AuthService {
     if (savedCode !== code) {
       throw new UnauthorizedException('Código de verificación inválido');
     }
+    // 6. Ahora sí borramos el código de Redis
+    await this.cacheManager.del(redisKey);
+    // Nota: No borramos el código aquí para permitir que confirmPasswordChange lo valide también.
+    return { message: 'Código de verificación correcto' };
+  }
 
+  async confirmPasswordChange(
+    email: string,
+    // code: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
     // 4. Buscar al usuario para actualizar password
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user) {
@@ -218,8 +224,6 @@ export class AuthService {
     user.password = hash;
     await this.userRepository.save(user);
 
-    // 6. ¡IMPORTANTE! Borrar el código de Redis para que no se use de nuevo
-    await this.cacheManager.del(redisKey);
     const { name } = user;
     this.mailService.sendEmailChangePassword(email, name);
     return { message: 'Contraseña actualizada correctamente' };

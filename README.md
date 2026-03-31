@@ -1,98 +1,104 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Rutea Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+El backend oficial del proyecto **Rutea**, una plataforma diseñada para la gestión, cálculo y optimización de rutas y líneas de transporte público mediante representación espacial y teoría de grafos.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Este proyecto está construido con [NestJS](https://nestjs.com/), aprovechando su arquitectura escalable y modular.
 
-## Description
+## 🚀 Características Principales
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **Gestión Geográfica (PostGIS)**: Almacenamiento y procesamiento de coordenadas y puntos de interés utilizando PostgreSQL y la extensión PostGIS.
+- **Teoría de Grafos para Rutas**: Cálculo automatizado de las rutas más cortas y optimización de trayectos utilizando la librería `graphology` y el algoritmo de `graphology-shortest-path`.
+- **Autenticación y Seguridad**: Sistema de autenticación JWT (JSON Web Tokens) con encriptación de contraseñas mediante `bcrypt`.
+- **Caché Eficiente**: Integración nativa con Redis para optimizar tiempos de respuesta en endpoints de alta demanda o cálculos intensivos.
+- **Notificaciones por Email**: Sistema de notificaciones integrado con `@nestjs-modules/mailer` soportado por clientes como `nodemailer` y `resend`.
+- **Documentación Dinámica**: API documentada en tiempo real mediante Swagger UI.
 
-## Project setup
+## 🛠️ Stack Tecnológico
 
-```bash
-$ npm install
-```
+- **Framework Principal**: [NestJS](https://nestjs.com/) v11 (Node.js)
+- **Lenguaje**: TypeScript
+- **Base de Datos**: PostgreSQL + extensión PostGIS
+- **ORM**: TypeORM
+- **Sistema de Caché**: Redis
+- **Autenticación**: JWT / bcrypt
+- **Otras Librerías**: Graphology (para análisis y manejo de grafos espaciales de transporte).
 
-## Compile and run the project
+## 🗂️ Estructura de Módulos
 
-```bash
-# development
-$ npm run start
+El proyecto mantiene una arquitectura de dominio, organizado principalmente en los siguientes módulos:
+- `AuthModule`: Gestión integral de autenticación, autorización y generación de tokens de acceso.
+- `UsuarioModule` y `PersonaModule`: Administración de perfiles, permisos y usuarios de la plataforma.
+- `LineasModule`: Gestión de las diversas rutas o líneas de transporte registradas.
+- `RutasModule`: Lógica principal para el trazado de trayectos, cálculo de sub-rutas basadas en grafos y navegación.
+- `PuntosModule`: Registro y manipulación geoespacial de paradas, intersecciones y puntos de control en el mapa.
+- `MailModule`: Servicio centralizado para mensajería electrónica (envío de credenciales, avisos, etc.).
+- `RedisManagerModule`: Módulo dedicado a la administración de estados y capa de caché temporal usando Redis.
 
-# watch mode
-$ npm run start:dev
+## ⚙️ Requisitos Previos
 
-# production mode
-$ npm run start:prod
-```
+Antes de ejecutar o desplegar este proyecto, asegúrate de tener a tu disposición:
+- [Node.js](https://nodejs.org/es/) (v22.x o superior recomendado).
+- [PostgreSQL](https://www.postgresql.org/) con la extensión **PostGIS** habilitada.
+- Instancia activa de [Redis](https://redis.io/) ejecutándose localmente o accesible vía red.
+- Herramienta de manejo de paquetes `npm`.
 
-## Run tests
+## 📦 Instalación
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+1. Clona el repositorio e instala las dependencias:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm install
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+2. Configura las variables de entorno para que los servicios conecten adecuadamente:
+   Crea un archivo `.env` en la raíz del proyecto basándote en la configuración esperada (`src/config/`) especificando credenciales para:
+   - Cadena de conexión a PostgreSQL
+   - Interfaz y puerto de Redis
+   - Secreto o Llave privada para JWT (`JWT_SECRET`)
+   - Credenciales SMTP o Resend API Key
 
-## Resources
+3. Asegúrate de que tu base de datos PostgreSQL pueda soportar objetos geográficos ejecutando:
 
-Check out a few resources that may come in handy when working with NestJS:
+```sql
+CREATE EXTENSION IF NOT EXISTS postgis;
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## 🚀 Ejecución y Despliegue
 
-## Support
+Inicia el entorno de desarrollo usando el CLI de Nest:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+# Servidor de pruebas
+npm run start
 
-## Stay in touch
+# Modo "watch" (recarga automática en desarrollo)
+npm run start:dev
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+# Compilación y modo producción
+npm run start:prod
+```
 
-## License
+## 📖 Explorador de API (Swagger)
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Una vez que el servidor backend esté en rápida ejecución, la documentación íntegra y navegable de los endpoints estará expuesta en la interfaz de **Swagger**.
+
+- **URL de Documentación**: `http://localhost:3000/api`
+
+## 🧪 Pruebas (Testing)
+
+El entorno emplea Jest para garantizar la estabilidad e integridad de los flujos de código:
+
+```bash
+# Pruebas unitarias
+npm run test
+
+# Pruebas de integración completa (e2e)
+npm run test:e2e
+
+# Informe general de cobertura
+npm run test:cov
+```
+
+## 📝 Licencia / Contexto Legal
+
+`backend_rutea` se encuentra actualmente bajo la figura **UNLICENSED** y pertenece privadamente a sus respectivos autores o entidad mantenedora.
