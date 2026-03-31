@@ -7,7 +7,7 @@
         .container { background-color: #ffffff; max-width: 600px; margin: 0 auto; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0; }
         .content { padding: 40px; }
         h2 { color: #1e293b; margin-top: 0; }
-        .text { color: #334155; line-height: 1.6; font-size: 16px; }
+        .text { color: #334155; line-height: 1.6; font-size: 16px;  }
     </style>
 </head>
 <body class="body-bg">
@@ -16,10 +16,10 @@
 
         <div class="content">
             {{#if name}}
-                <h2>Hola, {{name}}</h2>
+                <h2 style="text-align: center;">Hola, {{name}}</h2>
             {{/if}}
 
-            <div class="text">
+            <div class="text" style="text-align: justify;">
                 {{{message}}}
             </div>
         </div>
