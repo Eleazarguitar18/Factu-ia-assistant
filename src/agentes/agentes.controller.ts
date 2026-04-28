@@ -1,15 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
 import { AgentesService } from './agentes.service';
-import { CreateAgenteDto } from './dto/crear-transaccion-agente.dto';
-import { UpdateAgenteDto } from './dto/update-agente.dto';
+import { CrearTransaccionAgenteDto } from './dto/crear-transaccion-agente.dto';
 
 @Controller('agentes')
 export class AgentesController {
   constructor(private readonly agentesService: AgentesService) { }
 
   @Post()
-  create(@Body() createAgenteDto: CreateAgenteDto) {
-    return this.agentesService.create(createAgenteDto);
+  create(@Body() crearTransaccionAgenteDto: CrearTransaccionAgenteDto) {
+    return this.agentesService.create(crearTransaccionAgenteDto);
   }
 
   @Get()
@@ -20,11 +19,6 @@ export class AgentesController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.agentesService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAgenteDto: UpdateAgenteDto) {
-    return this.agentesService.update(+id, updateAgenteDto);
   }
 
   @Delete(':id')
