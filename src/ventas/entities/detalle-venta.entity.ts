@@ -1,9 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Venta } from './venta.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { BaseEntityAudit } from 'src/common/entities/base-entity.audit';
+import { Producto } from 'src/inventario/entities/producto.entity';
 
 @Entity('detalles_venta')
-export class DetalleVenta {
+export class DetalleVenta extends BaseEntityAudit {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -20,10 +22,17 @@ export class DetalleVenta {
   subtotal: number;
 
   @ManyToOne(() => Venta, (venta) => venta.detalles)
-  @JoinColumn({ name: 'venta_id' })
+  @JoinColumn({ name: 'id_venta' })
   venta: Venta;
 
+  @Column({ name: 'id_venta' })
+  id_venta: number;
+
+  @ManyToOne(() => Producto)
+  @JoinColumn({ name: 'id_producto' })
+  producto: Producto;
+
   @ApiProperty({ example: 5, description: 'ID del producto vendido' })
-  @Column()
-  producto_id: number;
+  @Column({ name: 'id_producto' })
+  id_producto: number;
 }

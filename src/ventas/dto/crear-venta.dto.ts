@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsEnum, IsInt, IsNotEmpty, IsNumber, Min, ValidateNested } from 'class-validator';
+import { IsArray, IsEnum, IsInt, IsNotEmpty, IsNumber, Min, ValidateNested, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum MetodoPago {
@@ -11,7 +11,7 @@ export enum MetodoPago {
 export class DetalleVentaDto {
   @ApiProperty({ example: 1, description: 'ID del producto' })
   @IsInt()
-  producto_id: number;
+  id_producto: number;
 
   @ApiProperty({ example: 2, description: 'Cantidad comprada' })
   @IsInt()
@@ -32,11 +32,15 @@ export class CrearVentaDto {
   @ApiProperty({ example: 101, description: 'ID de la sesión de caja activa' })
   @IsInt()
   @IsNotEmpty()
-  sesion_caja_id: number;
+  id_sesion_caja: number;
 
   @ApiProperty({ type: [DetalleVentaDto], description: 'Lista de productos vendidos' })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => DetalleVentaDto)
   detalles: DetalleVentaDto[];
+
+  @IsInt()
+  @IsNotEmpty()
+  id_user_create: number;
 }

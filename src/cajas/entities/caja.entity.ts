@@ -1,9 +1,10 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { SesionCaja } from './sesion-caja.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { BaseEntityAudit } from 'src/common/entities/base-entity.audit';
 
 @Entity('cajas')
-export class Caja {
+export class Caja extends BaseEntityAudit {
   @ApiProperty({ example: 1 })
   @PrimaryGeneratedColumn()
   id: number;

@@ -1,18 +1,10 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  JoinColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
-  OneToOne,
-  ManyToOne,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne, ManyToOne } from 'typeorm';
 import { Persona } from '../../persona/entities/persona.entity';
 import { Role } from 'src/auth/entities/role.entity';
+import { BaseEntityAudit } from 'src/common/entities/base-entity.audit';
 
 @Entity({ name: 'user' })
-export class Usuario {
+export class Usuario extends BaseEntityAudit {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -25,26 +17,10 @@ export class Usuario {
   @Column()
   password: string;
 
-  @Column({ default: true })
-  estado: boolean;
-
-  @Column({ nullable: true })
-  id_user_create: number;
-
-  @Column({ nullable: true })
-  id_user_update?: number;
-
-  @CreateDateColumn({ type: 'timestamp' })
-  created_at: Date;
-
-  @UpdateDateColumn({ type: 'timestamp' })
-  updated_at: Date;
-
   @OneToOne(() => Persona, { eager: true })
   @JoinColumn({ name: 'id_persona' })
   persona: Persona;
 
-   // ROLES
   @ManyToOne(() => Role, (role) => role.usuarios)
   @JoinColumn({ name: 'id_role' })
   role: Role;

@@ -1,9 +1,10 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
 import { SesionCaja } from './sesion-caja.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { BaseEntityAudit } from 'src/common/entities/base-entity.audit';
 
 @Entity('movimientos_caja')
-export class MovimientoCaja {
+export class MovimientoCaja extends BaseEntityAudit {
   @ApiProperty({ example: 1 })
   @PrimaryGeneratedColumn()
   id: number;
@@ -33,9 +34,9 @@ export class MovimientoCaja {
 
   // Relación: Todo movimiento debe pertenecer a una sesión de caja activa
   @ManyToOne(() => SesionCaja)
-  @JoinColumn({ name: 'sesion_caja_id' })
+  @JoinColumn({ name: 'id_sesion_caja' })
   sesion_caja: SesionCaja;
 
-  @Column()
-  sesion_caja_id: number;
+  @Column({ name: 'id_sesion_caja' })
+  id_sesion_caja: number;
 }

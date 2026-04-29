@@ -7,4 +7,9 @@ export class CerrarCajaDto {
   @Min(0)
   @IsNotEmpty()
   monto_final_real: number;
+
+  @ApiProperty({ example: 1 })
+  @IsNumber()
+  @IsNotEmpty()
+  id_user_update: number;
 }

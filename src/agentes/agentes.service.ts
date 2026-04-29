@@ -17,19 +17,21 @@ export class AgentesService {
   }
 
   async findAll(): Promise<TransaccionAgente[]> {
-    return await this.transaccionAgenteRepository.find();
+    return await this.transaccionAgenteRepository.find({ where: { estado: true } });
   }
 
   async findOne(id: number): Promise<TransaccionAgente> {
-    const transaccion = await this.transaccionAgenteRepository.findOneBy({ id });
+    const transaccion = await this.transaccionAgenteRepository.findOneBy({ id, estado: true });
     if (!transaccion) {
-      throw new NotFoundException(`Transacción de agente con ID ${id} no encontrada`);
+      throw new NotFoundException(`Transacción de agente con ID ${id} no encontrada o inactiva`);
     }
     return transaccion;
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number, id_user_update?: number): Promise<void> {
     const transaccion = await this.findOne(id);
-    await this.transaccionAgenteRepository.remove(transaccion);
+    transaccion.estado = false;
+    transaccion.id_user_update = id_user_update;
+    await this.transaccionAgenteRepository.save(transaccion);
   }
 }

@@ -1,110 +1,95 @@
-# Rutea Backend
+# R-Tienda Backend
 
-El backend oficial del proyecto **Rutea**, una plataforma diseñada para la gestión, cálculo y optimización de rutas y líneas de transporte público mediante representación espacial y teoría de grafos.
+El backend oficial del proyecto **R-Tienda**, una solución integral diseñada para la gestión administrativa, control de inventarios y procesamiento de ventas para comercios. 
 
-Este proyecto está construido con [NestJS](https://nestjs.com/), aprovechando su arquitectura escalable y modular.
+Este proyecto está construido con [NestJS](https://nestjs.com/), aprovechando su arquitectura modular, escalable y mantenible.
 
 ## 🚀 Características Principales
 
-- **Gestión Geográfica (PostGIS)**: Almacenamiento y procesamiento de coordenadas y puntos de interés utilizando PostgreSQL y la extensión PostGIS.
-- **Teoría de Grafos para Rutas**: Cálculo automatizado de las rutas más cortas y optimización de trayectos utilizando la librería `graphology` y el algoritmo de `graphology-shortest-path`.
-- **Autenticación y Seguridad**: Sistema de autenticación JWT (JSON Web Tokens) con encriptación de contraseñas mediante `bcrypt`.
-- **Caché Eficiente**: Integración nativa con Redis para optimizar tiempos de respuesta en endpoints de alta demanda o cálculos intensivos.
-- **Notificaciones por Email**: Sistema de notificaciones integrado con `@nestjs-modules/mailer` soportado por clientes como `nodemailer` y `resend`.
-- **Documentación Dinámica**: API documentada en tiempo real mediante Swagger UI.
+- **Gestión de Inventario**: Control robusto de productos, stock, categorías y seguimiento de movimientos.
+- **Módulo de Ventas**: Procesamiento eficiente de transacciones comerciales y registro de ventas.
+- **Control de Cajas**: Administración de puntos de venta, incluyendo aperturas, cierres y flujos de efectivo.
+- **Fuerza de Ventas (Agentes)**: Gestión de agentes de venta y perfiles de personal.
+- **Autenticación y Seguridad**: Sistema de seguridad basado en JWT (JSON Web Tokens) con encriptación de contraseñas mediante `bcrypt`.
+- **Caché de Alto Rendimiento**: Integración con Redis para optimizar el acceso a datos frecuentes y mejorar la respuesta del sistema.
+- **Notificaciones Automatizadas**: Servicio de mensajería electrónica integrado para alertas y reportes.
+- **Documentación Dinámica**: API documentada y explorable en tiempo real mediante Swagger.
 
 ## 🛠️ Stack Tecnológico
 
-- **Framework Principal**: [NestJS](https://nestjs.com/) v11 (Node.js)
+- **Framework Principal**: [NestJS](https://nestjs.com/) v11
 - **Lenguaje**: TypeScript
-- **Base de Datos**: PostgreSQL + extensión PostGIS
+- **Base de Datos**: PostgreSQL
 - **ORM**: TypeORM
 - **Sistema de Caché**: Redis
 - **Autenticación**: JWT / bcrypt
-- **Otras Librerías**: Graphology (para análisis y manejo de grafos espaciales de transporte).
+- **Mensajería**: Nodemailer / Resend
 
 ## 🗂️ Estructura de Módulos
 
-El proyecto mantiene una arquitectura de dominio, organizado principalmente en los siguientes módulos:
-- `AuthModule`: Gestión integral de autenticación, autorización y generación de tokens de acceso.
-- `UsuarioModule` y `PersonaModule`: Administración de perfiles, permisos y usuarios de la plataforma.
-- `LineasModule`: Gestión de las diversas rutas o líneas de transporte registradas.
-- `RutasModule`: Lógica principal para el trazado de trayectos, cálculo de sub-rutas basadas en grafos y navegación.
-- `PuntosModule`: Registro y manipulación geoespacial de paradas, intersecciones y puntos de control en el mapa.
-- `MailModule`: Servicio centralizado para mensajería electrónica (envío de credenciales, avisos, etc.).
-- `RedisManagerModule`: Módulo dedicado a la administración de estados y capa de caché temporal usando Redis.
+El proyecto sigue una arquitectura orientada a dominios, organizada en los siguientes módulos clave:
+
+- **`AuthModule`**: Gestión de seguridad, sesiones y permisos de acceso.
+- **`InventarioModule`**: Lógica central para el control de existencias y catálogo de productos.
+- **`VentasModule`**: Gestión del ciclo de vida de las transacciones comerciales.
+- **`CajasModule`**: Administración operativa de las cajas y puntos de cobro.
+- **`AgentesModule`**: Gestión de la fuerza de ventas y personal operativo.
+- **`UsuarioModule` / `PersonaModule`**: Administración de perfiles de usuario y datos personales.
+- **`MailModule`**: Servicio centralizado de notificaciones por correo electrónico.
+- **`RedisManagerModule`**: Capa de abstracción para la gestión de caché y estados temporales.
 
 ## ⚙️ Requisitos Previos
 
-Antes de ejecutar o desplegar este proyecto, asegúrate de tener a tu disposición:
-- [Node.js](https://nodejs.org/es/) (v22.x o superior recomendado).
-- [PostgreSQL](https://www.postgresql.org/) con la extensión **PostGIS** habilitada.
-- Instancia activa de [Redis](https://redis.io/) ejecutándose localmente o accesible vía red.
-- Herramienta de manejo de paquetes `npm`.
+- [Node.js](https://nodejs.org/) (v22.x o superior recomendado)
+- [PostgreSQL](https://www.postgresql.org/)
+- [Redis](https://redis.io/)
+- Gestor de paquetes `npm`
 
 ## 📦 Instalación
 
 1. Clona el repositorio e instala las dependencias:
+   ```bash
+   npm install
+   ```
+
+2. Configura las variables de entorno:
+   Crea un archivo `.env` en la raíz del proyecto (puedes basarte en `.env.example` si está disponible) con las siguientes configuraciones:
+   - Credenciales de PostgreSQL (`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`)
+   - Configuración de Redis (`REDIS_HOST`, `REDIS_PORT`)
+   - Secreto para JWT (`JWT_SECRET`)
+   - Configuración de correo (SMTP o API Keys)
+
+## 🚀 Ejecución
 
 ```bash
-npm install
-```
-
-2. Configura las variables de entorno para que los servicios conecten adecuadamente:
-   Crea un archivo `.env` en la raíz del proyecto basándote en la configuración esperada (`src/config/`) especificando credenciales para:
-   - Cadena de conexión a PostgreSQL
-   - Interfaz y puerto de Redis
-   - Secreto o Llave privada para JWT (`JWT_SECRET`)
-   - Credenciales SMTP o Resend API Key
-
-3. Asegúrate de que tu base de datos PostgreSQL pueda soportar objetos geográficos ejecutando:
-
-```sql
-CREATE EXTENSION IF NOT EXISTS postgis;
-```
-
-## 🚀 Ejecución y Despliegue
-
-Inicia el entorno de desarrollo usando el CLI de Nest:
-
-```bash
-# Servidor de pruebas
-npm run start
-
-# Modo "watch" (recarga automática en desarrollo)
+# Desarrollo con recarga automática
 npm run start:dev
 
-# Compilación y modo producción
+# Compilación para producción
+npm run build
+
+# Ejecución en producción
 npm run start:prod
 ```
 
-## 📖 Explorador de API (Swagger)
+## 📖 Documentación de la API (Swagger)
 
-Una vez que el servidor backend esté en rápida ejecución, la documentación íntegra y navegable de los endpoints estará expuesta en la interfaz de **Swagger**.
+La documentación interactiva de todos los endpoints está disponible una vez que el servidor esté en ejecución en:
 
-- **URL de Documentación**: `http://localhost:3000/api`
+- **URL**: `http://localhost:3000/api`
 
 ## 🧪 Pruebas (Testing)
-
-El entorno emplea Jest para garantizar la estabilidad e integridad de los flujos de código:
 
 ```bash
 # Pruebas unitarias
 npm run test
 
-# Pruebas de integración completa (e2e)
+# Pruebas de integración (e2e)
 npm run test:e2e
 
-# Informe general de cobertura
+# Cobertura de pruebas
 npm run test:cov
 ```
 
-## 🔍 Colección de Endpoints (Bruno)
-
-Para facilitar las pruebas de integración y manuales, puedes encontrar la colección oficial de endpoints configurada para [Bruno](https://www.usebruno.com/) en el siguiente repositorio:
-
-👉 **[GitHub: Rutea_enpoints](https://github.com/Eleazarguitar18/Rutea_enpoints.git)**
-
-## 📝 Licencia / Contexto Legal
-
-`backend_rutea` se encuentra actualmente bajo la figura **UNLICENSED** y es propiedad intelectual de **Elecode** y su empresa de desarrollo **Vortex**. Todos los derechos reservados.
+---
+Propiedad intelectual de **Elecode**. Todos los derechos reservados.

@@ -1,9 +1,10 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Producto } from './producto.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { BaseEntityAudit } from 'src/common/entities/base-entity.audit';
 
 @Entity('categoria')
-export class Categoria {
+export class Categoria extends BaseEntityAudit {
   @ApiProperty({ example: 1, description: 'Identificador único de la categoría' })
   @PrimaryGeneratedColumn()
   id: number;

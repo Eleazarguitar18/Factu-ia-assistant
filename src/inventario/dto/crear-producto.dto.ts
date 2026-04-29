@@ -34,5 +34,5 @@ export class CrearProductoDto {
 
   @ApiProperty({ example: 1, description: 'ID de la categoría a la que pertenece' })
   @IsInt()
-  categoriaId: number;
+  id_categoria: number;
 }

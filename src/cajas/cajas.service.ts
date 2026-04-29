@@ -20,23 +20,26 @@ export class CajasService {
   ) {}
 
   async findAllCajas(): Promise<Caja[]> {
-    return this.cajaRepository.find();
+    return this.cajaRepository.find({ where: { estado: true } });
   }
 
   async findCaja(id: number): Promise<Caja> {
-    const caja = await this.cajaRepository.findOne({ where: { id }, relations: ['sesiones'] });
-    if (!caja) throw new NotFoundException(`Caja con ID ${id} no encontrada`);
+    const caja = await this.cajaRepository.findOne({ 
+      where: { id, estado: true }, 
+      relations: ['sesiones'] 
+    });
+    if (!caja) throw new NotFoundException(`Caja con ID ${id} no encontrada o inactiva`);
     return caja;
   }
 
   async abrirCaja(abrirCajaDto: AbrirCajaDto): Promise<SesionCaja> {
-    const { cajaId, monto_inicial, usuarioId } = abrirCajaDto;
+    const { id_caja, monto_inicial, id_usuario, id_user_create } = abrirCajaDto;
     
-    const caja = await this.cajaRepository.findOneBy({ id: cajaId });
-    if (!caja) throw new NotFoundException(`Caja con id ${cajaId} no encontrada`);
+    const caja = await this.cajaRepository.findOneBy({ id: id_caja, estado: true });
+    if (!caja) throw new NotFoundException(`Caja con id ${id_caja} no encontrada o inactiva`);
 
     const sesionAbierta = await this.sesionCajaRepository.findOne({
-      where: { caja: { id: cajaId }, estado: 'ABIERTA' }
+      where: { id_caja: id_caja, estado_sesion: 'ABIERTA', estado: true }
     });
 
     if (sesionAbierta) {
@@ -44,21 +47,25 @@ export class CajasService {
     }
 
     const sesion = this.sesionCajaRepository.create({
-      caja,
+      id_caja,
       monto_inicial,
-      usuario_id: usuarioId,
-      estado: 'ABIERTA',
+      id_usuario,
+      estado_sesion: 'ABIERTA',
+      id_user_create
     });
 
     return this.sesionCajaRepository.save(sesion);
   }
 
   async cerrarCaja(idSesion: number, cerrarCajaDto: CerrarCajaDto): Promise<SesionCaja> {
-    const sesion = await this.sesionCajaRepository.findOneBy({ id: idSesion });
-    if (!sesion) throw new NotFoundException(`Sesión con ID ${idSesion} no encontrada`);
-    if (sesion.estado === 'CERRADA') throw new BadRequestException(`La sesión ya está cerrada`);
+    const { id_user_update } = cerrarCajaDto;
+    const sesion = await this.sesionCajaRepository.findOneBy({ id: idSesion, estado: true });
+    if (!sesion) throw new NotFoundException(`Sesión con ID ${idSesion} no encontrada o inactiva`);
+    if (sesion.estado_sesion === 'CERRADA') throw new BadRequestException(`La sesión ya está cerrada`);
 
-    const movimientos = await this.movimientoCajaRepository.find({ where: { sesion_caja_id: idSesion } });
+    const movimientos = await this.movimientoCajaRepository.find({ 
+      where: { id_sesion_caja: idSesion, estado: true } 
+    });
     
     let totalIngresos = 0;
     let totalEgresos = 0;
@@ -75,26 +82,35 @@ export class CajasService {
     sesion.monto_final_teorico = monto_final_teorico;
     sesion.monto_final_real = monto_final_real;
     sesion.diferencia = diferencia;
-    sesion.estado = 'CERRADA';
+    sesion.estado_sesion = 'CERRADA';
     sesion.fecha_cierre = new Date();
+    sesion.id_user_update = id_user_update;
 
     return this.sesionCajaRepository.save(sesion);
   }
 
   async crearMovimiento(crearMovimientoDto: CrearMovimientoDto): Promise<MovimientoCaja> {
-    const { sesion_caja_id, monto, tipo, motivo } = crearMovimientoDto;
+    const { id_sesion_caja, monto, tipo, motivo, id_user_create } = crearMovimientoDto;
 
-    const sesion = await this.sesionCajaRepository.findOneBy({ id: sesion_caja_id });
-    if (!sesion) throw new NotFoundException(`Sesión de caja con ID ${sesion_caja_id} no encontrada`);
-    if (sesion.estado !== 'ABIERTA') throw new BadRequestException(`No se pueden registrar movimientos en una sesión cerrada`);
+    const sesion = await this.sesionCajaRepository.findOneBy({ id: id_sesion_caja, estado: true });
+    if (!sesion) throw new NotFoundException(`Sesión de caja con ID ${id_sesion_caja} no encontrada o inactiva`);
+    if (sesion.estado_sesion !== 'ABIERTA') throw new BadRequestException(`No se pueden registrar movimientos en una sesión cerrada`);
 
     const movimiento = this.movimientoCajaRepository.create({
-      sesion_caja_id,
+      id_sesion_caja,
       monto,
       tipo,
       motivo,
+      id_user_create
     });
 
     return this.movimientoCajaRepository.save(movimiento);
+  }
+
+  async softDeleteCaja(id: number, id_user_update: number): Promise<void> {
+    const caja = await this.findCaja(id);
+    caja.estado = false;
+    caja.id_user_update = id_user_update;
+    await this.cajaRepository.save(caja);
   }
 }

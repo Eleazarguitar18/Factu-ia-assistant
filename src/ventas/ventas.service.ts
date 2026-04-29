@@ -23,6 +23,7 @@ export class VentasService {
       return {
         ...detalle,
         subtotal,
+        id_user_create: crearVentaDto.id_user_create,
       };
     });
 
@@ -35,38 +36,53 @@ export class VentasService {
     return this.ventaRepository.save(venta);
   }
 
-  findAll(): Promise<Venta[]> {
-    return this.ventaRepository.find({ relations: ['detalles'] });
+  async findAll(): Promise<Venta[]> {
+    return this.ventaRepository.find({
+      where: { estado: true },
+      relations: ['detalles'],
+    });
   }
 
   async findOne(id: number): Promise<Venta> {
     const venta = await this.ventaRepository.findOne({
-      where: { id },
+      where: { id, estado: true },
       relations: ['detalles'],
     });
 
     if (!venta) {
-      throw new NotFoundException(`Venta con ID ${id} no encontrada`);
+      throw new NotFoundException(
+        `Venta con ID ${id} no encontrada o inactiva`,
+      );
     }
 
     return venta;
   }
 
-  async update(id: number, actualizarVentaDto: ActualizarVentaDto): Promise<Venta> {
+  async update(
+    id: number,
+    actualizarVentaDto: ActualizarVentaDto,
+  ): Promise<Venta> {
+    const { id_user_update, ...updateData } = actualizarVentaDto;
     const venta = await this.ventaRepository.preload({
       id,
-      ...actualizarVentaDto,
+      ...updateData,
     });
 
-    if (!venta) {
-      throw new NotFoundException(`Venta con ID ${id} no encontrada`);
+    if (!venta || !venta.estado) {
+      throw new NotFoundException(
+        `Venta con ID ${id} no encontrada o inactiva`,
+      );
     }
+
+    venta.id_user_update = id_user_update;
 
     return this.ventaRepository.save(venta);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number, id_user_update?: number): Promise<void> {
     const venta = await this.findOne(id);
-    await this.ventaRepository.remove(venta);
+    venta.estado = false;
+    venta.id_user_update = id_user_update;
+    await this.ventaRepository.save(venta);
   }
 }

@@ -35,5 +35,9 @@ export class CrearTransaccionAgenteDto {
     @ApiProperty({ example: 101 })
     @IsInt()
     @IsNotEmpty()
-    sesion_caja_id: number;
+    id_sesion_caja: number;
+
+    @IsInt()
+    @IsNotEmpty()
+    id_user_create: number;
 }

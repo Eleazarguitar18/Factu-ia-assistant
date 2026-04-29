@@ -24,5 +24,9 @@ export class CrearMovimientoDto {
   @ApiProperty({ example: 101, description: 'ID de la sesión de caja actual' })
   @IsInt()
   @IsNotEmpty()
-  sesion_caja_id: number;
+  id_sesion_caja: number;
+
+  @IsInt()
+  @IsNotEmpty()
+  id_user_create: number;
 }

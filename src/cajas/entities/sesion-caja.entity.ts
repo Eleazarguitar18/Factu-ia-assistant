@@ -1,9 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
 import { Caja } from './caja.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { BaseEntityAudit } from 'src/common/entities/base-entity.audit';
 
 @Entity('sesiones_caja')
-export class SesionCaja {
+export class SesionCaja extends BaseEntityAudit {
   @ApiProperty({ example: 101 })
   @PrimaryGeneratedColumn()
   id: number;
@@ -25,8 +26,8 @@ export class SesionCaja {
   diferencia: number;
 
   @ApiProperty({ example: 'ABIERTA', enum: ['ABIERTA', 'CERRADA'] })
-  @Column({ default: 'ABIERTA' })
-  estado: string;
+  @Column({ name: 'estado_sesion', default: 'ABIERTA' })
+  estado_sesion: string;
 
   @ApiProperty({ description: 'Fecha y hora de inicio de turno' })
   @CreateDateColumn({ type: 'timestamp' })
@@ -37,10 +38,13 @@ export class SesionCaja {
   fecha_cierre: Date;
 
   @ManyToOne(() => Caja, (caja) => caja.sesiones)
-  @JoinColumn({ name: 'caja_id' })
+  @JoinColumn({ name: 'id_caja' })
   caja: Caja;
 
+  @Column({ name: 'id_caja' })
+  id_caja: number;
+
   @ApiProperty({ example: 2, description: 'ID del usuario que opera la sesión' })
-  @Column()
-  usuario_id: number;
+  @Column({ name: 'id_usuario' })
+  id_usuario: number;
 }

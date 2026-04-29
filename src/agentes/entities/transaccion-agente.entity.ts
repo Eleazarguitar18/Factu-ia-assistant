@@ -1,8 +1,10 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { BaseEntityAudit } from 'src/common/entities/base-entity.audit';
+import { SesionCaja } from 'src/cajas/entities/sesion-caja.entity';
 
 @Entity('transacciones_agente')
-export class TransaccionAgente {
+export class TransaccionAgente extends BaseEntityAudit {
     @ApiProperty({ example: 1 })
     @PrimaryGeneratedColumn()
     id: number;
@@ -46,7 +48,11 @@ export class TransaccionAgente {
     @CreateDateColumn({ type: 'timestamp' })
     fecha: Date;
 
+    @ManyToOne(() => SesionCaja)
+    @JoinColumn({ name: 'id_sesion_caja' })
+    sesion_caja: SesionCaja;
+
     @ApiProperty({ example: 101, description: 'Sesión de caja donde se realizó el movimiento' })
-    @Column()
-    sesion_caja_id: number;
+    @Column({ name: 'id_sesion_caja' })
+    id_sesion_caja: number;
 }

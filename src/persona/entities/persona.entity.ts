@@ -1,13 +1,8 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { BaseEntityAudit } from 'src/common/entities/base-entity.audit';
 
 @Entity({ name: 'persona' })
-export class Persona {
+export class Persona extends BaseEntityAudit {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -23,24 +18,6 @@ export class Persona {
   @Column({ type: 'date' })
   fecha_nacimiento: Date;
 
-  // @Column({ length: 20, unique: true })
-  // ci: string;
-
   @Column({ length: 10 })
   genero: string;
-
-  @Column({ default: true })
-  estado: boolean;
-
-  @Column({ nullable: true })
-  id_user_create: number;
-
-  @Column({ nullable: true })
-  id_user_update?: number;
-
-  @CreateDateColumn({ type: 'timestamp' })
-  created_at: Date;
-
-  @UpdateDateColumn({ type: 'timestamp' })
-  updated_at: Date;
 }

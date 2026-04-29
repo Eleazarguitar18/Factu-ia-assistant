@@ -1,9 +1,10 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Categoria } from './categoria.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { BaseEntityAudit } from 'src/common/entities/base-entity.audit';
 
 @Entity('producto')
-export class Producto {
+export class Producto extends BaseEntityAudit {
   @ApiProperty({ example: 1 })
   @PrimaryGeneratedColumn()
   id: number;
@@ -34,6 +35,6 @@ export class Producto {
 
   // Relación: Muchos productos pertenecen a una sola categoría
   @ManyToOne(() => Categoria, (categoria) => categoria.productos, { eager: true })
-  @JoinColumn({ name: 'categoria_id' })
+  @JoinColumn({ name: 'id_categoria' })
   categoria: Categoria;
 }
