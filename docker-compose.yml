@@ -1,4 +1,18 @@
-version: '3.3'
+version: '3.8'
 
 services:
-  rutea:
+  api:
+    container_name: nest_api_kantuta
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000' # Cambia el primer 3000 si tu app usa otro puerto hacia afuera
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    env_file:
+      - .env
+    extra_hosts:
+      - 'host.docker.internal:host-gateway' # Esto hace la magia en Linux
+    restart: always
