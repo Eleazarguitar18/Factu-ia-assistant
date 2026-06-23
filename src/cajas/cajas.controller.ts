@@ -43,7 +43,7 @@ export class CajasController {
 
   @Get('sesion/:id/balance')
   getSesionBalance(@Param('id') id: string) {
-    return this.cajasService.getSesionBalance(+id);
+    return this.cajasService.getSaldoCajaSesion(+id);
   }
 
   @Get(':id')

@@ -9,28 +9,31 @@ export class Caja extends BaseEntityAudit {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ApiProperty({ example: 'Caja 03 - Agentes BCP', description: 'Nombre identificador de la caja física' })
+  @ApiProperty({
+    example: 'Caja 03 - Agentes BCP',
+    description: 'Nombre identificador de la caja física',
+  })
   @Column()
   nombre: string;
 
-  @ApiProperty({ 
-    example: 'SOLO_AGENTES', 
+  @ApiProperty({
+    example: 'SOLO_AGENTES',
     enum: ['SOLO_VENTAS', 'SOLO_AGENTES', 'MIXTA'],
-    description: 'Define qué tipo de operaciones permite esta caja' 
+    description: 'Define qué tipo de operaciones permite esta caja',
   })
   @Column({
     type: 'enum',
     enum: ['SOLO_VENTAS', 'SOLO_AGENTES', 'MIXTA'],
-    default: 'MIXTA'
+    default: 'MIXTA',
   })
   especialidad: string;
 
-  @ApiProperty({ 
-    example: 500.00, 
-    description: 'Monto inicial inmutable base con el que se crea la caja' 
+  @ApiProperty({
+    example: 500.0,
+    description: 'Monto inicial inmutable base con el que se crea la caja',
   })
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-  monto_creacion: number;
+  saldo: number;
 
   @OneToMany(() => SesionCaja, (sesion) => sesion.caja)
   sesiones: SesionCaja[];

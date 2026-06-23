@@ -13,6 +13,7 @@ import { Producto } from '../inventario/entities/producto.entity';
 import { SesionCaja } from '../cajas/entities/sesion-caja.entity';
 import { AppGateway } from '../gateway/app.gateway';
 import { GetReporteVentasDto } from './dto/get-reporte-ventas.dto';
+import { Caja } from 'src/cajas/entities/caja.entity';
 
 @Injectable()
 export class VentasService {
@@ -26,6 +27,7 @@ export class VentasService {
   async create(crearVentaDto: CrearVentaDto): Promise<Venta> {
     const { detalles, ...ventaData } = crearVentaDto;
 
+    // Iniciar la transacción para proteger Stock y Saldo de Caja simultáneamente
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -34,12 +36,12 @@ export class VentasService {
       let total = 0;
       const detallesEntity: any[] = [];
 
+      // 1. Validar productos, verificar y descontar stock uno por uno
       for (const detalle of detalles) {
-        // SOLUCIÓN DEFINITIVA: Usamos QueryBuilder con alias explícito 'p'
         const producto = await queryRunner.manager
           .createQueryBuilder(Producto, 'p')
           .where('p.id = :id', { id: detalle.id_producto })
-          .setLock('pessimistic_write', undefined, ['p']) // 👈 Bloquea estrictamente el alias 'p'
+          .setLock('pessimistic_write', undefined, ['p']) // Bloqueo estricto para evitar stock negativo en compras simultáneas
           .getOne();
 
         if (!producto) {
@@ -54,11 +56,14 @@ export class VentasService {
           );
         }
 
+        // Restar stock y guardar
         producto.stock_actual -= detalle.cantidad;
         await queryRunner.manager.save(Producto, producto);
 
+        // Calcular subtotal y acumular el total de la venta
         const subtotal = detalle.cantidad * detalle.precio_unitario;
         total += subtotal;
+
         detallesEntity.push({
           ...detalle,
           subtotal,
@@ -66,14 +71,11 @@ export class VentasService {
         });
       }
 
-      // SOLUCIÓN DEFINITIVA: Usamos QueryBuilder con alias explícito 'sc'
+      // 2. Verificar que la sesión de caja exista y esté abierta
       const sesionCaja = await queryRunner.manager
         .createQueryBuilder(SesionCaja, 'sc')
-        .where('sc.id = :id AND sc.estado = :estado', {
-          id: crearVentaDto.id_sesion_caja,
-          estado: true,
-        })
-        .setLock('pessimistic_write', undefined, ['sc']) // 👈 Bloquea estrictamente el alias 'sc'
+        .leftJoinAndSelect('sc.caja', 'caja') // Traemos la relación de la caja física
+        .where('sc.id = :id', { id: crearVentaDto.id_sesion_caja })
         .getOne();
 
       if (!sesionCaja || sesionCaja.estado_sesion !== 'ABIERTA') {
@@ -82,11 +84,31 @@ export class VentasService {
         );
       }
 
-      sesionCaja.monto_final_teorico =
-        Number(sesionCaja.monto_final_teorico || sesionCaja.monto_inicial) +
-        total;
-      await queryRunner.manager.save(SesionCaja, sesionCaja);
+      if (!sesionCaja.caja) {
+        throw new BadRequestException(
+          `La sesión no tiene una caja física asociada.`,
+        );
+      }
 
+      // 3. Bloquear y obtener la fila de la Caja física para actualizar el SALDO de forma segura
+      const cajaFisica = await queryRunner.manager
+        .createQueryBuilder(Caja, 'c')
+        .where('c.id = :id', { id: sesionCaja.caja.id })
+        .setLock('pessimistic_write', undefined, ['c']) // Evitamos colisiones e hilos duplicados sumando dinero
+        .getOne();
+
+      if (!cajaFisica) {
+        throw new BadRequestException(`No se pudo encontrar la caja física.`);
+      }
+
+      // 4. ACTUALIZAR EL NUEVO SALDO EN LA CAJA (Convertimos a Number por los decimales de Postgres)
+      const saldoActual = Number(cajaFisica.saldo ?? 0);
+      cajaFisica.saldo = saldoActual + total;
+
+      // Guardamos la caja con su nuevo saldo dentro de la transacción
+      await queryRunner.manager.save(Caja, cajaFisica);
+
+      // 5. Crear y consolidar la entidad Venta
       const venta = queryRunner.manager.create(Venta, {
         ...ventaData,
         total,
@@ -95,17 +117,21 @@ export class VentasService {
 
       const savedVenta = await queryRunner.manager.save(Venta, venta);
 
+      // Confirmar todos los cambios en bloque (Commit de la transacción)
       await queryRunner.commitTransaction();
 
+      // Notificar al frontend mediante WebSockets para refrescar las insignias o contadores de saldo
       if (this.appGateway) {
         this.appGateway.notifyDataChange('caja', 'saldo_actualizado');
       }
 
       return savedVenta;
     } catch (error) {
+      // Si cualquier proceso intermedio falla, se restaura el Stock original y el saldo de la Caja
       await queryRunner.rollbackTransaction();
       throw error;
     } finally {
+      // Liberar los recursos de la base de datos
       await queryRunner.release();
     }
   }

@@ -234,7 +234,7 @@ export class ReportesService {
         fechaApertura: sesion.fecha_apertura,
         fechaCierre: sesion.fecha_cierre,
         montoInicial: Number(sesion.monto_inicial),
-        saldoActualTeorico: Number(sesion.monto_final_teorico || sesion.monto_inicial),
+        saldoActualTeorico: Number(sesion.caja.saldo),
       },
       movimientos: movimientos.map((m) => ({
         id: m.id,

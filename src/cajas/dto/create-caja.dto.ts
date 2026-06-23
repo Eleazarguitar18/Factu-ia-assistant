@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsIn, MinLength, IsInt, IsOptional, IsNumber, Min } from 'class-validator';
+import {
+  IsString,
+  IsIn,
+  MinLength,
+  IsInt,
+  IsOptional,
+  IsNumber,
+  Min,
+} from 'class-validator';
 
 export class CreateCajaDto {
   @ApiProperty({ example: 'Caja 01 - General' })
@@ -15,10 +23,10 @@ export class CreateCajaDto {
   @IsIn(['SOLO_VENTAS', 'SOLO_AGENTES', 'MIXTA'])
   especialidad: string;
 
-  @ApiProperty({ example: 500.00 })
+  @ApiProperty({ example: 500.0 })
   @IsNumber()
   @Min(0)
-  monto_creacion: number;
+  saldo: number;
 
   @ApiProperty({ example: 1 })
   @IsInt()

@@ -13,6 +13,7 @@ import { CerrarCajaDto } from './dto/cerrar-caja.dto';
 import { CrearMovimientoDto } from './dto/crear-movimiento.dto';
 import { CreateCajaDto } from './dto/create-caja.dto';
 import { UpdateCajaDto } from './dto/update-caja.dto';
+import { AppGateway } from 'src/gateway/app.gateway';
 
 @Injectable()
 export class CajasService {
@@ -23,13 +24,28 @@ export class CajasService {
     private readonly sesionCajaRepository: Repository<SesionCaja>,
     @InjectRepository(MovimientoCaja)
     private readonly movimientoCajaRepository: Repository<MovimientoCaja>,
+    private readonly appGateway: AppGateway, // <-- 1. Inyectamos tu WebSocket Gateway
   ) {}
 
   async create(createCajaDto: CreateCajaDto): Promise<Caja> {
     const caja = this.cajaRepository.create(createCajaDto);
     return this.cajaRepository.save(caja);
   }
-
+  async getSaldoCajaSesion(idSesion: number): Promise<number> {
+    const sesion = await this.sesionCajaRepository.findOne({
+      where: {
+        id: idSesion,
+        estado: true,
+      },
+      relations: ['caja'],
+    });
+    if (!sesion)
+      throw new NotFoundException(
+        `Sesión de caja con ID ${idSesion} no encontrada o inactiva`,
+      );
+    console.log(sesion);
+    return sesion.caja.saldo;
+  }
   async findAllCajas(): Promise<Caja[]> {
     return this.cajaRepository.find({ where: { estado: true } });
   }
@@ -50,7 +66,10 @@ export class CajasService {
     return this.cajaRepository.save(updatedCaja);
   }
 
-  async abrirCaja(abrirCajaDto: AbrirCajaDto, userRole?: string): Promise<SesionCaja> {
+  async abrirCaja(
+    abrirCajaDto: AbrirCajaDto,
+    userRole?: string,
+  ): Promise<SesionCaja> {
     const { id_caja, id_usuario, id_user_create } = abrirCajaDto;
     let { monto_inicial } = abrirCajaDto;
 
@@ -71,22 +90,17 @@ export class CajasService {
       throw new BadRequestException(`La caja ya tiene una sesión abierta`);
     }
 
-    const lastSession = await this.sesionCajaRepository.findOne({
-      where: { id_caja },
-      order: { id: 'DESC' },
-    });
-
-    if (userRole === 'Operador') {
-      monto_inicial = lastSession 
-        ? (lastSession.monto_final_real ?? lastSession.monto_final_teorico ?? 0) 
-        : (caja.monto_creacion ?? 0);
+    // 2. CORRECCIÓN: Al abrir, priorizamos el saldo actual acumulado en la tabla 'Cajas'
+    if (
+      userRole === 'Operador' ||
+      monto_inicial === undefined ||
+      monto_inicial === null
+    ) {
+      monto_inicial = Number(caja.saldo ?? 0);
     } else {
-      // Si el admin no mandó monto_inicial para corrección, se hereda normalmente
-      if (monto_inicial === undefined || monto_inicial === null) {
-        monto_inicial = lastSession 
-          ? (lastSession.monto_final_real ?? lastSession.monto_final_teorico ?? 0) 
-          : (caja.monto_creacion ?? 0);
-      }
+      // Si el admin envía un monto_inicial manual para corregir el efectivo en mano:
+      caja.saldo = Number(monto_inicial);
+      await this.cajaRepository.save(caja);
     }
 
     const sesion = this.sesionCajaRepository.create({
@@ -97,7 +111,12 @@ export class CajasService {
       id_user_create,
     });
 
-    return this.sesionCajaRepository.save(sesion);
+    const nuevaSesion = await this.sesionCajaRepository.save(sesion);
+
+    // 📡 Notificar al frontend apertura en tiempo real
+    this.appGateway.notifyDataChange('caja', 'CAJA_ABIERTA');
+
+    return nuevaSesion;
   }
 
   async cerrarCaja(
@@ -140,7 +159,12 @@ export class CajasService {
     sesion.fecha_cierre = new Date();
     sesion.id_user_update = id_user_update;
 
-    return this.sesionCajaRepository.save(sesion);
+    const sesionCerrada = await this.sesionCajaRepository.save(sesion);
+
+    // 📡 Notificar al frontend cierre en tiempo real
+    this.appGateway.notifyDataChange('caja', 'CAJA_CERRADA');
+
+    return sesionCerrada;
   }
 
   async crearMovimiento(
@@ -149,10 +173,12 @@ export class CajasService {
     const { id_sesion_caja, monto, tipo, motivo, id_user_create } =
       crearMovimientoDto;
 
-    const sesion = await this.sesionCajaRepository.findOneBy({
-      id: id_sesion_caja,
-      estado: true,
+    // Buscamos la sesión junto con su relación 'caja'
+    const sesion = await this.sesionCajaRepository.findOne({
+      where: { id: id_sesion_caja, estado: true },
+      relations: ['caja'],
     });
+
     if (!sesion)
       throw new NotFoundException(
         `Sesión de caja con ID ${id_sesion_caja} no encontrada o inactiva`,
@@ -161,7 +187,31 @@ export class CajasService {
       throw new BadRequestException(
         `No se pueden registrar movimientos en una sesión cerrada`,
       );
+    if (!sesion.caja)
+      throw new BadRequestException(
+        `La sesión no tiene una caja física asociada.`,
+      );
 
+    // 3. CORRECCIÓN: Actualizar el saldo acumulado en la tabla 'Cajas' en caliente
+    const caja = sesion.caja;
+    const saldoActual = Number(caja.saldo ?? 0);
+    const montoMovimiento = Number(monto);
+
+    if (tipo === 'INGRESO') {
+      caja.saldo = saldoActual + montoMovimiento;
+    } else if (tipo === 'EGRESO') {
+      if (saldoActual < montoMovimiento) {
+        throw new BadRequestException(
+          `Fondos insuficientes en el saldo de la caja. Saldo disponible: ${saldoActual}`,
+        );
+      }
+      caja.saldo = saldoActual - montoMovimiento;
+    }
+
+    // Guardamos la actualización de la caja
+    await this.cajaRepository.save(caja);
+
+    // Guardamos el movimiento manual
     const movimiento = this.movimientoCajaRepository.create({
       id_sesion_caja,
       monto,
@@ -170,7 +220,13 @@ export class CajasService {
       id_user_create,
     });
 
-    return this.movimientoCajaRepository.save(movimiento);
+    const nuevoMovimiento =
+      await this.movimientoCajaRepository.save(movimiento);
+
+    // 📡 Notificar en tiempo real que el saldo y los movimientos mutaron
+    this.appGateway.notifyDataChange('caja', 'saldo_actualizado');
+
+    return nuevoMovimiento;
   }
 
   async getSesionActivaUsuario(id_usuario: number): Promise<SesionCaja> {
@@ -178,7 +234,9 @@ export class CajasService {
       where: { id_usuario, estado_sesion: 'ABIERTA', estado: true },
     });
     if (!sesion) {
-      throw new NotFoundException(`No hay sesión activa para el usuario ${id_usuario}`);
+      throw new NotFoundException(
+        `No hay sesión activa para el usuario ${id_usuario}`,
+      );
     }
     return sesion;
   }
@@ -189,7 +247,9 @@ export class CajasService {
       estado: true,
     });
     if (!sesion) {
-      throw new NotFoundException(`Sesión con ID ${idSesion} no encontrada o inactiva`);
+      throw new NotFoundException(
+        `Sesión con ID ${idSesion} no encontrada o inactiva`,
+      );
     }
 
     const movimientos = await this.movimientoCajaRepository.find({
@@ -204,7 +264,8 @@ export class CajasService {
       else if (mov.tipo === 'EGRESO') totalEgresos += Number(mov.monto);
     }
 
-    const monto_final_teorico = Number(sesion.monto_inicial) + totalIngresos - totalEgresos;
+    const monto_final_teorico =
+      Number(sesion.monto_inicial) + totalIngresos - totalEgresos;
 
     return {
       monto_inicial: Number(sesion.monto_inicial),
