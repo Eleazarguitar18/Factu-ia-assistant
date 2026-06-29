@@ -1,7 +1,7 @@
 {
-  "name": "kantuta-pos-backend",
+  "name": "factu-assistant-backend",
   "version": "0.0.1",
-  "description": "Backend de Kantuta POS",
+  "description": "Backend de Factu Assistant",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
