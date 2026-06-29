@@ -14,19 +14,13 @@ import { RedisConfig } from './config/redis.config';
 import { JwtConfig } from './config/jwt.config';
 import { DatabaseConfig } from './config/database.config';
 import { RedisManagerModule } from './redis-manager/redis-manager.module';
-import { InventarioModule } from './inventario/inventario.module';
-import { CajasModule } from './cajas/cajas.module';
-import { VentasModule } from './ventas/ventas.module';
-import { AgentesModule } from './agentes/agentes.module';
-import { ComprasModule } from './compras/compras.module';
-import { RecargasModule } from './recargas/recargas.module';
-import { ReportesModule } from './reportes/reportes.module';
-
 import { WhatsappModule } from './whatsapp/whatsapp.module';
 import { GeminiModule } from './gemini/gemini.module';
 import { AiAssistantModule } from './ai-assistant/ai-assistant.module';
 
 import { GatewayModule } from './gateway/gateway.module';
+import { FacturasModule } from './facturas/facturas.module';
+import { ServiciosFijosModule } from './servicios-fijos/servicios-fijos.module';
 
 @Module({
   imports: [
@@ -42,19 +36,14 @@ import { GatewayModule } from './gateway/gateway.module';
     UsuarioModule,
     MailModule,
     RedisManagerModule,
-    InventarioModule,
-    CajasModule,
-    VentasModule,
-    AgentesModule,
-    ComprasModule,
-    RecargasModule,
-    ReportesModule,
     WhatsappModule,
     GeminiModule,
     AiAssistantModule,
     GatewayModule,
+    FacturasModule,
+    ServiciosFijosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

@@ -19,7 +19,7 @@ export class AiAssistantService {
     // Cambiado para que lea el archivo genérico ia-prompt.md
     const promptPath = path.join(
       process.cwd(),
-      'src/ai-assistant/prompts/ia-prompt.md',
+      'src/ai-assistant/prompts/ia-promt.md',
     );
     this.systemInstruction = fs.readFileSync(promptPath, 'utf8');
   }

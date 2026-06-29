@@ -1,12 +1,9 @@
 import { Module } from '@nestjs/common';
 import { AiAssistantService } from './ai-assistant.service';
 import { AiAssistantController } from './ai-assistant.controller';
-import { VentasModule } from '../ventas/ventas.module';
-import { InventarioModule } from '../inventario/inventario.module';
-import { ReportesModule } from '../reportes/reportes.module';
 
 @Module({
-  imports: [VentasModule, InventarioModule, ReportesModule],
+  imports: [],
   controllers: [AiAssistantController],
   providers: [AiAssistantService],
   exports: [AiAssistantService],

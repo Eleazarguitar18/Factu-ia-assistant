@@ -9,13 +9,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(morgan('dev'));
   const config = new DocumentBuilder()
-    .setTitle('Kantuta POS API')
-    .setDescription('The kantuta pos api description')
+    .setTitle('Factu-Assistant API')
+    .setDescription('The Factu-Assistant api description')
     .setVersion('1.0')
     .addBearerAuth()
-    .addTag('users')
-    .addTag('products')
-    .addTag('categories')
+    .addTag('facturas')
+    .addTag('servicios-fijos')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
