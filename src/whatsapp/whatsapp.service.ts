@@ -103,7 +103,8 @@ export class WhatsappService implements OnModuleInit {
         await this.enviarEstadoEscribiendo(remoteJid as string);
         console.log(`[IA] Activando animación de escritura para ${remoteJid}`);
         // 1. Llamamos a nuestra IA
-        const respuesta = await this.aiAssistantService.procesarConsulta(texto);
+        const respuesta =
+          await this.aiAssistantService.procesarConversacion(texto);
         console.log(`[IA] respondiendo a ${remoteJid}: ${respuesta}`);
         // 2. Respondemos por WhatsApp
         await this.enviarRespuestaIA(remoteJid as string, respuesta);
